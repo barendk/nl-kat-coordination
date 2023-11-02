@@ -1,11 +1,13 @@
 from logging import getLogger
 from typing import Dict, List, Set, TypedDict
 
+from django.conf import settings
 from django.contrib import messages
 from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
+from django_weasyprint import WeasyTemplateResponseMixin
 from katalogus.client import Plugin, get_katalogus
 from tools.view_helpers import BreadcrumbsMixin
 
@@ -164,13 +166,18 @@ class ReportSetupScanView(PluginSelectionView, TemplateView):
         return super().get(request, *args, **kwargs)
 
 
-class ReportView(BaseSelectionView, PluginSelectionView, TemplateView):
+class ReportView(BaseSelectionView, PluginSelectionView, TemplateView, WeasyTemplateResponseMixin):
     """
     Shows the report generated from OOIS and report types.
     """
 
     template_name = "report.html"
     current_step = 4
+    pdf_filename = "foo.pdf"
+
+    pdf_stylesheets = [
+        f"{settings.BASE_DIR}/assets/dist/app.css",
+    ]
 
     def get(self, request, *args, **kwargs):
         if not self.are_plugins_enabled():
